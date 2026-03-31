@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 230 25% 92%;
+    --foreground: 230 30% 15%;
+
+    --card: 230 30% 96%;
+    --card-foreground: 230 30% 15%;
+
+    --popover: 230 30% 96%;
+    --popover-foreground: 230 30% 15%;
+
+    --primary: 252 60% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 230 25% 88%;
+    --secondary-foreground: 230 30% 20%;
+
+    --muted: 230 20% 90%;
+    --muted-foreground: 230 15% 50%;
+
+    --accent: 280 50% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 230 20% 85%;
+    --input: 230 20% 85%;
+    --ring: 252 60% 55%;
+
+    --radius: 1.25rem;
+
+    --glass-bg: 230 30% 98% / 0.55;
+    --glass-border: 230 30% 100% / 0.3;
+    --glass-shadow: 252 60% 40% / 0.08;
+
+    --gradient-bg: linear-gradient(135deg, hsl(230 25% 92%), hsl(252 30% 88%), hsl(230 20% 90%));
+    --gradient-primary: linear-gradient(135deg, hsl(252 60% 55%), hsl(280 50% 60%));
+    --gradient-glow: 0 0 40px hsl(252 60% 55% / 0.3);
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    background: var(--gradient-bg);
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .glass {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: 0 8px 32px hsl(var(--glass-shadow));
+  }
+
+  .glass-strong {
+    background: hsl(230 30% 98% / 0.75);
+    backdrop-filter: blur(30px) saturate(1.6);
+    -webkit-backdrop-filter: blur(30px) saturate(1.6);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: 0 12px 48px hsl(var(--glass-shadow));
+  }
+
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glow-primary {
+    box-shadow: var(--gradient-glow);
+  }
+
+  .glow-hover {
+    transition: box-shadow 0.3s ease;
+  }
+  .glow-hover:hover {
+    box-shadow: var(--gradient-glow);
+  }
+}
