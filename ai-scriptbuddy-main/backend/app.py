@@ -323,6 +323,14 @@ def generate_script_api():
     except Exception as e:
         print(f"Generation error: {e}")
         return jsonify({"error": "Failed to generate script", "details": str(e)}), 500
+        def seed():
+    try:
+        from seed_database import seed_library
+        seed_library()
+        return jsonify({"message": "Database seeded successfully!"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
