@@ -24,9 +24,7 @@ analysis_collection = db['analysis']
 profiles_collection = db['profiles']
 library_collection = db['script_library']
 
-# Basic User Helper
 def get_user_id():
-    # In a real app, use JWT tokens. For this prototype, we'll read a header passed by the frontend.
     return request.headers.get('X-User-Id', 'guest_user')
 
 @app.route('/', methods=['GET'])
@@ -45,7 +43,7 @@ def register():
     data = request.json
     username = data.get('username')
     email = data.get('email')
-    password = data.get('password') # In production, use hashing (e.g. bcrypt)
+    password = data.get('password')
 
     if users_collection.find_one({"$or": [{"username": username}, {"email": email}]}):
         return jsonify({"error": "User already exists"}), 400
@@ -60,7 +58,6 @@ def register():
     }
     users_collection.insert_one(user_doc)
     
-    # Also initialize their profile
     profile_doc = {
         "userId": user_id,
         "fullName": data.get('fullName', username),
@@ -81,7 +78,7 @@ def register():
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.json
-    identifier = data.get('identifier') # email or username
+    identifier = data.get('identifier')
     password = data.get('password')
 
     user = users_collection.find_one({
@@ -113,17 +110,15 @@ def profile_api():
     if request.method == 'POST':
         data = request.json
         profiles_collection.update_one(
-            {"userId": CURRENT_USER_ID},
+            {"userId": curr_user_id},
             {"$set": data},
             upsert=True
         )
         return jsonify({"message": "Profile updated successfully"})
 
 def improve_script(script):
-    """Deep AI script improver: removes fillers and provides strategic advice."""
     if not script: return "Please provide a script to improve."
     
-    # 1. Detect filler words
     fillers = ["um", "uh", "actually", "basically", "literally", "like", "so", "you know", "i mean"]
     detected = [f for f in fillers if re.search(f"\\b{f}\\b", script, flags=re.IGNORECASE)]
     
@@ -131,13 +126,10 @@ def improve_script(script):
     for f in fillers:
         improved_text = re.sub(f"\\b{f}\\b", "", improved_text, flags=re.IGNORECASE)
     
-    # Clean up whitespace
     improved_text = re.sub(r'\s+', ' ', improved_text).strip()
     
-    # AI logic: Add hook, structure, and CTA
     improved = "✨ [AI OPTIMIZED STRATEGY & SCRIPT] ✨\n\n"
     
-    # 2. Strategic Hook
     improved += "🪝 THE HOOK (Tactical Advice: Use a 'Pattern Interrupt' or start with a surprising value proposition)\n"
     if len(improved_text) > 50:
         first_sentence = improved_text.split('.')[0]
@@ -145,7 +137,6 @@ def improve_script(script):
     else:
         improved += ">>> \"Stop wasting time on [Problem]! Here is the exact secret to [Solution]...\"\n\n"
         
-    # 3. Body Structure
     improved += "📝 THE BODY (Tactical Advice: Keep sentences under 15 words. Break every 30s with a new visual or concept.)\n"
     sentences = improved_text.split('.')
     if len(sentences) > 2:
@@ -154,7 +145,6 @@ def improve_script(script):
     else:
         improved += ">>> " + improved_text + "\n\n"
     
-    # 4. CTA (Call to Action)
     improved += "🚀 THE CTA (Tactical Advice: Don't just ask to 'subscribe'. Give them a reason related to the value you just provided.)\n"
     improved += ">>> \"This was just one step. If you want the full breakdown, subscribe now and check the pinned comment!\"\n\n"
     
@@ -171,28 +161,23 @@ def start_analysis():
     duration = data.get('duration', '1-5 min')
     
     try:
-        # Use Enhanced Scorer to get predictions
         original_score = scorer.score(script)
         metrics = scorer.get_detailed_metrics(script)
         improved_script = improve_script(script)
         
-        # Calculate score for the improved version
         improved_score = scorer.score(improved_script)
         improvement_val = round(float(improved_score - original_score), 1)
         improvement_pct = f"+{improvement_val}%" if improvement_val >= 0 else f"{improvement_val}%"
         
-        # Calculate Predicted Watch Time (heuristic: based on typical script duration)
-        # 1-5 min (avg 3 min) -> 180s. Watch Time = 180s * (score/100)
-        base_seconds = 180 # Default
+        base_seconds = 180
         if '1-5' in str(duration): base_seconds = 180
         elif '5-10' in str(duration): base_seconds = 450
         elif '10+' in str(duration): base_seconds = 900
         
-        predicted_watch_time = round((base_seconds * (improved_score / 100)) / 60, 1) # in minutes
+        predicted_watch_time = round((base_seconds * (improved_score / 100)) / 60, 1)
         
         analysis_id = "analys_" + os.urandom(4).hex()
         
-        # Generate dynamic recommendations
         recs = []
         if metrics.get('hook', 0) < 60:
             recs.append("Your hook is below average. Try adding curiosity triggers like 'Why' or 'The secret to...'.")
@@ -210,14 +195,14 @@ def start_analysis():
             "analysisId": analysis_id,
             "score": original_score,
             "predictedScore": improved_score,
-            "predictedRetention": improved_score, # Real prediction
-            "predictedWatchTime": predicted_watch_time, # Real prediction
+            "predictedRetention": improved_score,
+            "predictedWatchTime": predicted_watch_time,
             "improvement": improvement_pct,
             "metrics": metrics,
             "rewrite": improved_script,
             "recommendations": recs
         }
-        # Save to MongoDB
+
         curr_user_id = get_user_id()
         analysis_collection.insert_one({
             "analysisId": analysis_id,
@@ -228,10 +213,8 @@ def start_analysis():
         })
     except Exception as e:
         print(f"Analysis error: {e}")
-        # Return a meaningful error or a graceful fallback
         return jsonify({"error": "Failed to analyze script", "details": str(e)}), 500
     
-    # Auto-update profile with niche and duration if not already set or using defaults
     curr_user_id = get_user_id()
     niche = data.get('niche')
     duration = data.get('duration')
@@ -252,7 +235,6 @@ def get_results(analysis_id):
     result = analysis_collection.find_one({"analysisId": analysis_id}, {"_id": 0})
     if result:
         return jsonify(result['result'])
-    # Return mock for demonstration if not found
     return jsonify({
         "score": 75,
         "rewrite": "This is a dummy rewrite suggestion.",
@@ -271,9 +253,9 @@ def get_history():
             "id": item.get('analysisId'),
             "title": (item.get('script', 'Analysis')[:30] + '...') if item.get('script') else 'Script Analysis',
             "date": item.get('createdAt').strftime("%b %d, %Y") if item.get('createdAt') else "Recent",
-            "improvement": res.get('improvement', '0%'), # Real improvement
-            "predicted": res.get('predictedScore', 0), # Real predicted score
-            "actual": res.get('score', 0), # Real original score
+            "improvement": res.get('improvement', '0%'),
+            "predicted": res.get('predictedScore', 0),
+            "actual": res.get('score', 0),
             "score": res.get('score', 0)
         })
     
@@ -296,7 +278,6 @@ def search_library():
 
 @app.route('/api/library/random', methods=['GET'])
 def random_library():
-    # Get 3 random high-performing scripts
     cursor = library_collection.aggregate([
         {"$sample": {"size": 3}},
         {"$project": {"_id": 0}}
@@ -323,14 +304,15 @@ def generate_script_api():
     except Exception as e:
         print(f"Generation error: {e}")
         return jsonify({"error": "Failed to generate script", "details": str(e)}), 500
-        def seed():
+
+@app.route('/api/seed', methods=['GET'])
+def seed():
     try:
         from seed_database import seed_library
         seed_library()
         return jsonify({"message": "Database seeded successfully!"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
