@@ -42,7 +42,7 @@ const Results = () => {
     // If no analysisId, we could use a fallback, 
     // but the backend mock handles any ID
     const idToFetch = analysisId || "default";
-    fetch(`/api/results/${idToFetch}`)
+    fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:5000'}/api/results/${idToFetch}`)
       .then((res) => res.json())
       .then((data) => {
         setResult(data);
