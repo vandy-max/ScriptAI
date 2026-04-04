@@ -2,7 +2,6 @@ import pandas as pd
 import os
 from pymongo import MongoClient
 from dotenv import load_dotenv
-import re
 
 load_dotenv()
 
@@ -37,11 +36,9 @@ def seed_library():
     records = []
     print(f"⚡ Processing top {len(library_data)} scripts...")
     for _, row in library_data.iterrows():
-        # Clean script teaser
         script = str(row['script'])
         title = script.split('.')[0][:50] + "..." if '.' in script else script[:50]
         
-        # Approximate niche from source
         source = str(row['source'])
         niche = "Trending"
         if "TED" in source: niche = "Educational"
@@ -61,13 +58,11 @@ def seed_library():
     if records:
         print("💾 Inserting records into MongoDB...")
         library_collection.insert_many(records)
-        # Create indices
         library_collection.create_index([("niche", 1)])
         library_collection.create_index([("retention", -1)])
         print(f"✅ Successfully seeded {len(records)} inspiration scripts!")
     else:
         print("⚠️ No suitable records found to seed.")
-        @app.route('/api/seed', methods=['GET'])
 
 if __name__ == "__main__":
     seed_library()
