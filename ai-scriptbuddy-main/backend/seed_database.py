@@ -68,13 +68,6 @@ def seed_library():
     else:
         print("⚠️ No suitable records found to seed.")
         @app.route('/api/seed', methods=['GET'])
-def seed():
-    try:
-        from seed_database import seed_library
-        seed_library()
-        return jsonify({"message": "Database seeded successfully!"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     seed_library()
